@@ -1,0 +1,25 @@
+# Data (keep raw/processed data out of git - too large, and some sources have usage terms)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# MLflow
+mlruns/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Secrets - never commit these
+.env
+*.key
