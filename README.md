@@ -1,91 +1,138 @@
-# India ODI World Cup 2027 (South Africa) — AI Team Selection Assistant
+# India ODI World Cup 2027 — Squad & Playing XI Selector
 
 A data-driven **decision-support tool** for exploring squad and playing-XI
-recommendations for the Indian ODI team ahead of the 2027 World Cup in
-South Africa. Built as a portfolio project demonstrating an end-to-end
-ML pipeline: data engineering → feature engineering → modeling →
-constrained optimization → explainability → deployment.
+recommendations for the Indian ODI team ahead of the 2027 World Cup
+(South Africa, Zimbabwe, Namibia). Built as a portfolio project
+demonstrating an end-to-end pipeline: data engineering → data quality
+resolution → feature engineering → explainable scoring → constrained
+selection → automation → a custom web interface.
+
+**Live interface:** open `app/index.html` directly in a browser (self-contained,
+no server required) — see [Usage](#usage) below to generate it.
 
 ## What this project is — and isn't
 
 This is **not** a claim to replicate BCCI's actual selection process. It
-does not have access to proprietary data BCCI selectors use internally
-(Hawk-Eye ball-tracking speed/seam/swing data, medical/fitness reports,
-or selector deliberation). It's a transparent, explainable recommender
-built entirely on free, public data, with any estimated (non-measured)
-inputs clearly flagged as such throughout the pipeline and UI.
+doesn't have access to proprietary data real selectors use internally
+(Hawk-Eye ball-tracking, medical/fitness reports, dressing-room judgment).
+It's a transparent, explainable recommender built entirely on free, public
+match data, with a small, auditable layer where real cricketing knowledge
+can correct the data where it falls short — every such correction is
+explained, not hidden.
 
 ## Data sources
 
-- [Cricsheet](https://cricsheet.org) — free, structured ball-by-ball
-  data for international ODIs (primary dataset)
-- ESPNcricinfo Statsguru — venue-split and domestic tournament
-  scorecard-level stats (scraped, respecting robots.txt / rate limits)
-- Open-Meteo — free weather API for venue temperature context
-- Wikipedia — venue metadata (altitude, historical records)
+- [Cricsheet](https://cricsheet.org) — free, ball-by-ball archive of
+  international ODI, Test, T20I, and IPL matches. The sole data source
+  for this project; no data is scraped from commercial sites (e.g.
+  CricBuzz, ESPNcricinfo), which carry real terms-of-service restrictions.
 
-## Data confidence levels
+## What the pipeline actually does
 
-Every feature in this project is tagged with one of:
+1. **Ingest** — downloads and parses raw match data, filtering to men's
+   international cricket (Cricsheet's archive includes women's matches
+   too, which are explicitly excluded via the `gender` field).
+2. **Data quality resolution** — several real, non-obvious issues were
+   found and fixed here, not assumed away:
+   - The same physical ground recorded under multiple name variants
+     (e.g. "Kingsmead" vs "Kingsmead, Durban") — resolved via a manually
+     verified alias table (`data/reference/wc2027_host_venues.csv`),
+     careful to *not* merge similarly-named but genuinely different
+     grounds (e.g. Johannesburg's Wanderers vs. a differently-named
+     ground in Windhoek, Namibia).
+   - Retired players ranking as top current picks, because "recent form"
+     was originally based on innings-index rather than calendar recency
+     — fixed with an explicit `is_active` flag based on last-played date.
+   - Role misclassification: players who occasionally bat at the tail
+     end were being labeled all-rounders on innings-count alone — fixed
+     by also requiring a real batting average.
+3. **Feature engineering** — recency-weighted "current form" stats,
+   percentile-normalized suitability scores, wicketkeeper detection
+   from stumping-dismissal data, real historical batting order derived
+   from ball-by-ball entry sequence.
+4. **Explainable scoring** — every player's score ships with a
+   plain-English reason built from their actual stats, not a black box.
+5. **Human-knowledge overrides** — `data/reference/role_overrides.csv`
+   lets real cricketing judgment override the raw numbers where
+   warranted (e.g. a senior player's proven big-match temperament during
+   a short-term form dip), with the reasoning surfaced transparently in
+   that player's profile, not hidden behind the data.
+6. **Selection** — a fixed squad of 15 is selected once (role-quota
+   constrained: wicketkeepers/batters/all-rounders/bowlers), then a
+   Playing XI is chosen *from that fixed 15 only*, per venue, using each
+   player's own historical record at that specific ground where enough
+   data exists.
+7. **Automation** — a monthly GitHub Actions workflow re-runs the entire
+   pipeline and commits refreshed results, so the squad stays current as
+   new ODIs are played over the year without any manual effort.
 
-| Tag | Meaning |
-|---|---|
-| `measured` | Directly computed from real match/ball-by-ball data |
-| `estimated_from_commentary` | Grounded in real public reporting (e.g. commentary-reported bowling pace ranges), expressed as a range/category, not a fabricated precise value |
-| `role_based_default` | No player-specific public info exists; a generic role-based default is used, clearly marked as low-confidence |
+## Interfaces
 
-See `src/features/synthetic_pace.py` for the reference implementation
-of this pattern.
+Two interfaces exist in this repo:
+
+- **`app/index.html`** (current) — a self-contained static website
+  (HTML/CSS/JS, data baked in as JSON at build time). No server, no
+  Python runtime needed to view it — just open the file. Generated by
+  `src/export/build_website.py`. Deployable for free via GitHub Pages.
+- **`app/main.py`** (earlier prototype, kept for reference) — a
+  Streamlit version built first to iterate quickly. Retained in the repo
+  to show the prototype → production progression, but superseded by the
+  static site once precise design control became necessary.
+
+## Known limitations (stated plainly)
+
+- Batting average doesn't yet distinguish not-outs from dismissals
+  (understates everyone's average by a small, roughly equal amount).
+- Team assignment is inferred from batting appearances only.
+- Pitch pace-vs-spin friendliness isn't tracked yet (only overall
+  scoring tendency is) — a good next addition.
+- Some grounds, especially ones built specifically for this tournament,
+  have little or no historical data yet.
 
 ## Project structure
 
 ```
 india-wc27-selector/
 ├── data/
-│   ├── raw/            # untouched downloaded data (gitignored)
-│   └── processed/      # cleaned, tidy tables (gitignored)
+│   ├── raw/              # downloaded match data (gitignored, large)
+│   ├── processed/        # cleaned tables + model outputs (small parquet files, committed)
+│   ├── reference/        # manually curated: venue aliases, role overrides
+│   └── player_photos/    # optional local photos (not committed by default)
 ├── src/
-│   ├── ingest/          # download + parse raw data sources
-│   ├── features/        # feature engineering, incl. synthetic/confidence-flagged features
-│   └── models/          # suitability scoring, squad/XI optimization, explainability
-├── app/                 # Streamlit UI
-├── notebooks/           # exploration notebooks
-├── tests/
+│   ├── ingest/           # download + parse raw Cricsheet data (incl. multi-format)
+│   ├── features/         # feature engineering, venue normalization, wicketkeeper detection
+│   ├── models/           # suitability scoring, squad/XI selection
+│   ├── export/           # builds the static website from processed data
+│   └── run_pipeline.py   # runs the full pipeline end to end
+├── app/
+│   ├── index.html        # the current, static-site interface
+│   └── main.py           # earlier Streamlit prototype (reference)
+├── .github/workflows/    # automated monthly data refresh
 ├── requirements.txt
 └── README.md
 ```
 
-## Pipeline / roadmap
-
-1. **Data ingestion** — `src/ingest/download_cricsheet.py`, `parse_cricsheet.py`
-2. **Feature engineering** — player form, venue splits, confidence-flagged synthetic features
-3. **Modeling** — XGBoost suitability scorer + SHAP explainability
-4. **Optimization** — constrained squad-of-20 / playing-XI selection (PuLP)
-5. **Explanation layer** — SHAP → natural language
-6. **UI** — Streamlit app for venue/date-based recommendations
-7. **Deployment** — Streamlit Community Cloud (free tier)
-
-## Setup
+## Usage
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# Step 1: download raw data
-python src/ingest/download_cricsheet.py
+# Run the full data pipeline (download, clean, score, select squad)
+python src/run_pipeline.py
 
-# Step 2: parse into tidy tables
-python src/ingest/parse_cricsheet.py
+# Generate the Playing XI for a specific ground (optional, prints to terminal)
+python src/models/build_playing_xi.py "SuperSport Park"
+
+# Build the website
+python src/export/build_website.py
+# then open app/index.html directly in a browser
 ```
-
-## Status
-
-🚧 Work in progress — see the project board / issues for current phase.
 
 ## License
 
-MIT (code). Note: Cricsheet data has its own usage terms — see
-https://cricsheet.org/downloads/ before redistributing any raw data
-files (the `.gitignore` in this repo already excludes raw/processed
-data from version control for this reason).
+MIT (code). Cricsheet data has its own usage terms — see
+[cricsheet.org/downloads](https://cricsheet.org/downloads/) before
+redistributing any raw data files (already excluded from version control
+via `.gitignore` for this reason).
