@@ -131,10 +131,41 @@ def build_bowling_features(bowling: pd.DataFrame) -> pd.DataFrame:
     return bowling.groupby("player").apply(player_agg, include_groups=False).reset_index()
 
 
+def load_venue_alias_map() -> dict:
+    """Same alias-mapping approach used in normalize_venues.py, reused here
+    so a player's ground-specific record isn't wrongly split/undercounted
+    across name-variants of the same real ground (e.g. 'Kingsmead' vs
+    'Kingsmead, Durban')."""
+    path = REFERENCE_DIR / "wc2027_host_venues.csv"
+    if not path.exists():
+        return {}
+    ref = pd.read_csv(path)
+    alias_map = {}
+    for _, row in ref.iterrows():
+        canonical = row["canonical_name"]
+        alias_map[canonical] = canonical
+        if pd.notna(row["known_aliases"]):
+            for alias in str(row["known_aliases"]).split("|"):
+                alias_map[alias.strip()] = canonical
+    return alias_map
+
+
 def build_venue_splits(batting: pd.DataFrame, bowling: pd.DataFrame) -> pd.DataFrame:
     """Per player, per venue, batting/bowling stats — only kept where
     the sample size clears MIN_INNINGS_FOR_VENUE_STAT, otherwise dropped
-    rather than reported on a misleadingly thin sample."""
+    rather than reported on a misleadingly thin sample.
+
+    Venue names are normalized to canonical WC-host names FIRST (see
+    load_venue_alias_map) so a player's real combined record at one
+    ground isn't undercounted just because Cricsheet recorded it under
+    two different name spellings.
+    """
+    alias_map = load_venue_alias_map()
+    batting = batting.copy()
+    bowling = bowling.copy()
+    if alias_map:
+        batting["venue"] = batting["venue"].map(alias_map).fillna(batting["venue"])
+        bowling["venue"] = bowling["venue"].map(alias_map).fillna(bowling["venue"])
 
     bat_venue = (
         batting.groupby(["player", "venue"])
