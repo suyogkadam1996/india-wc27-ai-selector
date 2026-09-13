@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India ODI World Cup 2027 — Squad &amp; XI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E7E9EE;
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --line: #D7DAE2;
+    --blue: #2C4A87;
+    --accent: #D9432E;
+    --accent-dim: #F6D9D4;
+    --text: #101828;
+    --text-muted: #667085;
+    --success: #15803D;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+  }
+
+  .hero {
+    width: 100%;
+    background:
+      linear-gradient(180deg, rgba(11,18,32,0.4) 0%, rgba(11,18,32,0.95) 100%),
+      radial-gradient(ellipse 1200px 600px at 80% -20%, rgba(217,67,46,0.22), transparent),
+      linear-gradient(120deg, #10182C 0%, #0B1220 60%);
+    border-bottom: 1px solid #1C2740;
+    padding: 64px 40px 48px;
+  }
+
+  .hero-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 76px;
+    letter-spacing: 1px;
+    line-height: 0.98;
+    margin: 0 0 18px 0;
+    color: #fff;
+    max-width: 16ch;
+  }
+
+  .hero p {
+    color: #B8C4D9;
+    max-width: 62ch;
+    margin: 0 0 28px 0;
+    font-size: 16px;
+  }
+
+  .stat-strip {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .stat-strip .stat {
+    display: flex;
+    flex-direction: column;
+  }
+  .stat-strip .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    color: #fff;
+    line-height: 1;
+  }
+  .stat-strip .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px 40px 100px;
+  }
+
+  .masthead h1, .masthead p { display: none; } /* replaced by .hero */
+
+  .updated-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .updated-line .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--success);
+  }
+
+  section { margin-top: 56px; }
+
+  .section-head h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+    color: var(--text);
+  }
+  .section-head p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0 0 24px 0;
+    max-width: 70ch;
+  }
+
+  .roster-cap {
+    max-width: 760px;
+  }
+
+  .xi-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .venue-info-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    position: sticky;
+    top: 24px;
+    box-shadow: 0 1px 3px rgba(16,24,40,0.05);
+  }
+  .venue-info-card h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--text);
+    margin: 0 0 4px 0;
+    letter-spacing: 0.5px;
+  }
+  .venue-info-card .venue-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 5px;
+    margin-bottom: 16px;
+  }
+  .tag-high_scoring { background: #DCFCE7; color: #166534; }
+  .tag-medium_scoring { background: #FEF3C7; color: #92400E; }
+  .tag-low_scoring { background: #FEE2E2; color: #991B1B; }
+  .tag-insufficient_data { background: #F1F3F7; color: var(--text-muted); }
+
+  .venue-stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .venue-stat-row:last-child { border-bottom: none; }
+  .venue-stat-row .label { color: var(--text-muted); }
+  .venue-stat-row .value { color: var(--text); font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+
+  .venue-info-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+
+  .roster { border-top: 1px solid var(--line); }
+
+  .row {
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .row:hover { background: rgba(44,74,135,0.04); }
+
+  .row-main {
+    display: grid;
+    grid-template-columns: 44px 40px 1fr auto 20px;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 4px;
+  }
+
+  .pos-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: #0B1220;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+
+  .name-block .name {
+    font-weight: 600;
+    font-size: 15.5px;
+    color: var(--text);
+  }
+  .name-block .meta {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .role-tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+    color: #fff;
+  }
+  .role-batter { background: #2563EB; }
+  .role-bowler { background: #DC2626; }
+  .role-all_rounder { background: #7C3AED; }
+  .keeper-badge { color: #A15C00; font-weight: 600; }
+  .senior-badge { color: var(--accent); font-weight: 600; }
+
+  .score-block {
+    text-align: right;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .score-block .score-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .chevron {
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+    font-size: 12px;
+  }
+  .row.open .chevron { transform: rotate(90deg); }
+
+  .row-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    padding: 0 4px;
+  }
+  .row.open .row-detail {
+    max-height: 300px;
+    padding: 0 4px 20px 4px;
+  }
+
+  .venue-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #EAF1FF;
+    border: 1px solid #BFD3F5;
+    color: #1D4ED8;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .why-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .why-list li {
+    font-size: 13.5px;
+    color: #344054;
+    padding: 5px 0 5px 22px;
+    position: relative;
+  }
+  .why-list li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 11px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+
+  .profile-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .profile-link:hover { border-bottom-color: var(--accent); }
+
+  .venue-picker {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .venue-picker label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  select.venue-select {
+    appearance: none;
+    background: var(--surface-raised) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="%23667085"/></svg>') no-repeat right 14px center;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 36px 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    min-width: 260px;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.05);
+  }
+  select.venue-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .venue-coverage {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(16,24,40,0.6);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .modal-overlay.visible { display: flex; }
+
+  .modal-panel {
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 28px;
+    animation: modalIn 0.18s ease;
+    box-shadow: 0 20px 48px rgba(16,24,40,0.25);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .modal-header .avatar { width: 56px; height: 56px; font-size: 18px; }
+  .modal-header h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    margin: 0;
+    color: var(--text);
+  }
+  .modal-header .modal-meta {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .modal-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .status-line {
+    font-size: 13px;
+    margin-bottom: 16px;
+    color: var(--text-muted);
+  }
+  .status-line .live-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--success); margin-right: 6px;
+  }
+
+  table.stat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.stat-table th {
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.stat-table td {
+    padding: 9px 6px;
+    border-bottom: 1px solid var(--line);
+    color: #344054;
+  }
+  table.stat-table td.fmt-name { font-weight: 600; color: var(--text); }
+
+  .modal-footer {
+    margin-top: 16px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .about-block {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 26px;
+    box-shadow: 0 1px 3px rgba(16,24,40,0.05);
+  }
+  .about-block p {
+    font-size: 13.5px;
+    color: #344054;
+    margin: 0 0 14px 0;
+    max-width: 68ch;
+  }
+  .about-block p:last-child { margin-bottom: 0; }
+  .about-block strong { color: var(--text); }
+  .about-block a { color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .xi-layout { grid-template-columns: 1fr; }
+    .venue-info-card { position: static; }
+  }
+
+  @media (max-width: 560px) {
+    .hero { padding: 44px 20px 36px; }
+    .hero h1 { font-size: 42px; }
+    .wrap { padding: 36px 20px 80px; }
+    .row-main { grid-template-columns: 32px 34px 1fr auto 14px; gap: 10px; }
+    .score-block { font-size: 22px; }
+    .stat-strip { gap: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">ICC MEN'S CRICKET WORLD CUP · SOUTH AFRICA, ZIMBABWE &amp; NAMIBIA</div>
+    <h1>India's Road to the 2027 World Cup</h1>
+    <p>A data-driven decision-support tool, not an official BCCI product. Built on real Cricsheet match data, combined with transparent expert-knowledge overrides where the numbers alone don't tell the full story.</p>
+    <div class="stat-strip">
+      <div class="stat"><div class="stat-num" id="stat-squad">—</div><div class="stat-label">SQUAD MEMBERS</div></div>
+      <div class="stat"><div class="stat-num" id="stat-venues">—</div><div class="stat-label">HOST VENUES</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">HOST NATIONS</div></div>
+    </div>
+    <div class="updated-line"><span class="dot"></span><span id="updated-text">—</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <div class="section-head">
+      <h2>Squad of 15</h2>
+      <p>Fixed for the whole tournament. Tap a player to see the case for their selection.</p>
+    </div>
+    <div class="xi-layout">
+      <div class="roster" id="squad-roster"></div>
+      <div class="venue-info-card" id="squad-composition-card"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Playing XI by Venue</h2>
+      <p>Chosen from the fixed squad above — never from outside it. Recalculated instantly for the ground you pick.</p>
+    </div>
+    <div class="venue-picker">
+      <label for="venue-select">Ground</label>
+      <select id="venue-select" class="venue-select"></select>
+    </div>
+    <div class="xi-layout">
+      <div>
+        <div class="venue-coverage" id="venue-coverage"></div>
+        <div class="roster" id="xi-roster" style="margin-top:16px;"></div>
+      </div>
+      <div class="venue-info-card" id="venue-info-card"></div>
+    </div>
+  </section>
+
+  <section id="about-section">
+    <div class="section-head">
+      <h2>About This Project</h2>
+    </div>
+    <div class="about-block">
+      <p><strong>What this is.</strong> A decision-support tool, not an official BCCI product. It doesn't have access to what real selectors use internally (ball-tracking speed/seam data, medical reports, dressing-room judgment) — it works entirely from free, public match data.</p>
+      <p><strong>Data source.</strong> All stats come from <a href="https://cricsheet.org" target="_blank" rel="noopener">Cricsheet</a>, a free, ball-by-ball archive of international cricket. Multi-format profile stats (Test/T20I/IPL) come from the same source.</p>
+      <p><strong>How the squad is picked.</strong> Every currently active player gets a suitability score built from recent form (weighted higher) and career stats. A constrained selection then fills 15 squad slots by role (wicketkeepers, batters, all-rounders, bowlers) using those scores.</p>
+      <p><strong>How the Playing XI is picked.</strong> Chosen from the fixed 15 only, per venue — a player's score is adjusted using their own historical record at that specific ground where enough data exists (3+ innings), otherwise their general squad score is used unchanged.</p>
+      <p><strong>Where human judgment overrides the numbers.</strong> A small, transparent override list lets real cricketing knowledge correct the data where it falls short — e.g. recognising a senior player's proven big-match temperament during a short-term form dip, or correcting a role the stats alone got wrong. Every override is explained in that player's reasoning, not hidden.</p>
+      <p><strong>Known limitations.</strong> Batting average doesn't yet distinguish not-outs from dismissals (slightly understates everyone's average equally). Team assignment is inferred from batting appearances only. Some grounds have limited historical data, especially brand-new venues built for this tournament.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-panel" id="modal-panel"></div>
+</div>
+
+<script id="app-data" type="application/json">__APP_DATA__</script>
+
+<script>
+let DATA;
+window.addEventListener('error', (e) => {
+  showFatalError('Unexpected error: ' + (e.error ? (e.error.stack || e.error.message) : e.message));
+});
+
+try {
+  DATA = JSON.parse(document.getElementById('app-data').textContent);
+} catch (err) {
+  showFatalError('Could not read the embedded data (JSON.parse failed): ' + err.message);
+}
+
+function showFatalError(message) {
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:#3D1216;border:1px solid #7A2A24;color:#FFD3D0;' +
+    'padding:16px 20px;border-radius:10px;margin:20px 0;font-family:monospace;font-size:13px;white-space:pre-wrap;';
+  banner.textContent = '⚠ Something broke while loading this page:\n\n' + message +
+    '\n\nTake a screenshot of this box and send it back for help fixing it.';
+  document.querySelector('.wrap').prepend(banner);
+}
+
+const ROLE_LABEL = { batter: "Batter", bowler: "Bowler", all_rounder: "All-rounder" };
+const XI_QUOTAS = { wicketkeeper: 1, batter: 4, all_rounder: 3, bowler: 3 };
+
+function initials(name) {
+  const parts = name.replace(/\./g, ' ').split(' ').filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function avatarHTML(player, size) {
+  const photo = DATA.photos[player];
+  if (photo) {
+    return `<img class="avatar" style="width:${size}px;height:${size}px" src="${photo}" alt="${player}" />`;
+  }
+  const colors = { batter: '#7CADFF', bowler: '#FF8A80', all_rounder: '#D6A8FF' };
+  const role = DATA.squad.find(p => p.player === player)?.role || 'batter';
+  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${colors[role] || '#7CADFF'}">${initials(player)}</div>`;
+}
+
+function reasonToBullets(reason) {
+  if (!reason) return ["No detailed data available yet."];
+  const text = reason.replace(/;/g, '.');
+  const parts = text.split(/(?<!\d)\.(?!\d)\s*/).map(s => s.trim()).filter(Boolean);
+  return parts.length ? parts : ["No detailed data available yet."];
+}
+
+function metaLine(p) {
+  let tags = `<span class="role-tag role-${p.role}">${ROLE_LABEL[p.role] || p.role}</span>`;
+  if (p.is_wicketkeeper) tags += `<span class="keeper-badge">Keeper</span> `;
+  if (p.guaranteed_selection) tags += ` <span class="senior-badge">★ Proven pick</span>`;
+  return tags;
+}
+
+function buildRosterRow(p, scoreKey, extraNote, rowId) {
+  const bullets = reasonToBullets(p.reason);
+  const bulletsHTML = bullets.slice(0, 4).map(b => `<li>${b}</li>`).join('');
+  const noteHTML = extraNote ? `<div class="venue-flag">${extraNote}</div>` : '';
+  const score = p[scoreKey] !== undefined ? p[scoreKey] : p.suitability_score;
+  return `
+  <div class="row" id="${rowId}">
+    <div class="row-main" onclick="toggleRow('${rowId}')">
+      <div class="pos-num">${p.no}</div>
+      ${avatarHTML(p.player, 38)}
+      <div class="name-block">
+        <div class="name">${p.player}</div>
+        <div class="meta">${metaLine(p)}</div>
+      </div>
+      <div class="score-block">${score}<span class="score-label">SCORE</span></div>
+      <div class="chevron">&#9656;</div>
+    </div>
+    <div class="row-detail">
+      ${noteHTML}
+      <ul class="why-list">${bulletsHTML}</ul>
+      <span class="profile-link" onclick="event.stopPropagation(); openProfile('${p.player.replace(/'/g, "\\'")}')">View full career profile</span>
+    </div>
+  </div>`;
+}
+
+function toggleRow(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function renderSquad() {
+  const sorted = [...DATA.squad].sort((a, b) => (a.avg_batting_position ?? 99) - (b.avg_batting_position ?? 99));
+  sorted.forEach((p, i) => p.no = i + 1);
+  const html = sorted.map(p => buildRosterRow(p, 'suitability_score', null, `sq-row-${p.no}`)).join('');
+  document.getElementById('squad-roster').innerHTML = html;
+  renderSquadComposition();
+}
+
+function renderSquadComposition() {
+  const counts = { batter: 0, bowler: 0, all_rounder: 0, wicketkeeper: 0 };
+  DATA.squad.forEach(p => {
+    if (p.is_wicketkeeper) counts.wicketkeeper++;
+    else counts[p.role] = (counts[p.role] || 0) + 1;
+  });
+  const card = document.getElementById('squad-composition-card');
+  card.innerHTML = `
+    <h3>Squad Composition</h3>
+    <span class="venue-tag tag-medium_scoring">${DATA.squad.length} PLAYERS</span>
+    <div class="venue-stat-row"><span class="label">Wicketkeepers</span><span class="value">${counts.wicketkeeper}</span></div>
+    <div class="venue-stat-row"><span class="label">Specialist batters</span><span class="value">${counts.batter}</span></div>
+    <div class="venue-stat-row"><span class="label">All-rounders</span><span class="value">${counts.all_rounder}</span></div>
+    <div class="venue-stat-row"><span class="label">Bowlers</span><span class="value">${counts.bowler}</span></div>
+    <div class="venue-info-note">A typical ODI World Cup balance carries 2 keeper-capable batters, a strong top order, all-rounders who bowl real overs, and specialist bowlers covering pace and spin.</div>
+  `;
+}
+
+function percentileRank(values, target) {
+  if (values.length === 0) return null;
+  const below = values.filter(v => v <= target).length;
+  return Math.round((below / values.length) * 1000) / 10;
+}
+
+function computeVenueXI(venueName) {
+  const battingRows = DATA.venue_batting.filter(r => r.venue === venueName);
+  const bowlingRows = DATA.venue_bowling.filter(r => r.venue === venueName);
+  const battingAvgs = battingRows.map(r => r.venue_batting_avg);
+  const battingSRs = battingRows.map(r => r.venue_strike_rate);
+  const bowlWkts = bowlingRows.map(r => r.venue_wickets);
+  const bowlEcons = bowlingRows.map(r => -r.venue_economy);
+
+  let withData = 0;
+  const adjusted = DATA.squad.map(p => {
+    let venueScore = null;
+    const batRow = battingRows.find(r => r.player === p.player);
+    const bowlRow = bowlingRows.find(r => r.player === p.player);
+    if ((p.role === 'batter' || p.role === 'all_rounder') && batRow) {
+      const pctAvg = percentileRank(battingAvgs, batRow.venue_batting_avg);
+      const pctSR = percentileRank(battingSRs, batRow.venue_strike_rate);
+      venueScore = (pctAvg + pctSR) / 2;
+    } else if (p.role === 'bowler' && bowlRow) {
+      const pctWkt = percentileRank(bowlWkts, bowlRow.venue_wickets);
+      const pctEcon = percentileRank(bowlEcons, -bowlRow.venue_economy);
+      venueScore = (pctWkt + pctEcon) / 2;
+    }
+    const hadData = venueScore !== null;
+    if (hadData) withData++;
+    const finalScore = hadData
+      ? Math.round((p.suitability_score * 0.5 + venueScore * 0.5) * 10) / 10
+      : p.suitability_score;
+    return { ...p, venue_adjusted_score: finalScore, had_venue_data: hadData };
+  });
+
+  return { adjusted, withData };
+}
+
+function selectXI(adjusted) {
+  const sorted = [...adjusted].sort((a, b) => b.venue_adjusted_score - a.venue_adjusted_score);
+  const picked = [];
+  const pickedNames = new Set();
+
+  const keepers = sorted.filter(p => p.is_wicketkeeper).slice(0, XI_QUOTAS.wicketkeeper);
+  keepers.forEach(p => { picked.push({ ...p, selected_as: 'wicketkeeper' }); pickedNames.add(p.player); });
+
+  for (const role of ['batter', 'all_rounder', 'bowler']) {
+    const pool = sorted.filter(p => p.role === role && !pickedNames.has(p.player));
+    const picks = pool.slice(0, XI_QUOTAS[role]);
+    picks.forEach(p => { picked.push({ ...p, selected_as: role }); pickedNames.add(p.player); });
+  }
+
+  const shortfall = 11 - picked.length;
+  if (shortfall > 0) {
+    const remaining = sorted.filter(p => !pickedNames.has(p.player));
+    remaining.slice(0, shortfall).forEach(p => { picked.push({ ...p, selected_as: p.role }); pickedNames.add(p.player); });
+  }
+  return picked;
+}
+
+function renderVenueInfoCard(venueName) {
+  const info = (DATA.venue_characteristics || {})[venueName];
+  const card = document.getElementById('venue-info-card');
+  if (!info || info.data_confidence !== 'measured') {
+    card.innerHTML = `
+      <h3>${venueName}</h3>
+      <span class="venue-tag tag-insufficient_data">LIMITED DATA</span>
+      <div class="venue-info-note">Not enough recorded matches at this ground yet for reliable scoring/pitch characteristics. This is common for brand-new venues built for this tournament.</div>
+    `;
+    return;
+  }
+  const tagClass = `tag-${info.scoring_category || 'insufficient_data'}`;
+  const tagLabel = (info.scoring_category || 'unknown').replace('_', '-').toUpperCase();
+  card.innerHTML = `
+    <h3>${venueName}</h3>
+    <span class="venue-tag ${tagClass}">${tagLabel}</span>
+    <div class="venue-stat-row"><span class="label">Matches on record</span><span class="value">${info.matches_played ?? '—'}</span></div>
+    <div class="venue-stat-row"><span class="label">Avg. team total</span><span class="value">${info.avg_team_total ?? '—'}</span></div>
+    <div class="venue-stat-row"><span class="label">Avg. wickets/match</span><span class="value">${info.avg_wickets_per_match ?? '—'}</span></div>
+    <div class="venue-info-note">Based on real historical scores at this ground. Pace-vs-spin friendliness isn't tracked yet — a good next addition to this project.</div>
+  `;
+}
+
+function renderXI() {
+  const venue = document.getElementById('venue-select').value;
+  const { adjusted, withData } = computeVenueXI(venue);
+  const xi = selectXI(adjusted);
+  const sorted = xi.sort((a, b) => (a.avg_batting_position ?? 99) - (b.avg_batting_position ?? 99));
+  sorted.forEach((p, i) => p.no = i + 1);
+
+  document.getElementById('venue-coverage').textContent =
+    `${withData} of ${DATA.squad.length} squad members have a recorded record at this ground — the rest use their general squad score.`;
+
+  const html = sorted.map(p => {
+    const note = p.had_venue_data
+      ? "Adjusted using this player's real record at this ground"
+      : "No data at this ground yet — using general squad ranking";
+    return buildRosterRow(p, 'venue_adjusted_score', note, `xi-row-${p.no}`);
+  }).join('');
+  document.getElementById('xi-roster').innerHTML = html;
+  renderVenueInfoCard(venue);
+}
+
+function populateVenueDropdown() {
+  const select = document.getElementById('venue-select');
+  select.innerHTML = DATA.venues.map(v => `<option value="${v}">${v}</option>`).join('');
+  select.addEventListener('change', renderXI);
+}
+
+function openProfile(playerName) {
+  const details = DATA.player_details[playerName] || {};
+  const mf = DATA.multiformat[playerName] || {};
+  const squadEntry = DATA.squad.find(p => p.player === playerName) || {};
+
+  const formats = [
+    { key: 'odi', label: 'ODI' },
+    { key: 'test', label: 'Test' },
+    { key: 't20i', label: 'T20I' },
+    { key: 'ipl', label: 'IPL' },
+  ];
+  const rows = formats
+    .filter(f => mf[`${f.key}_matches`])
+    .map(f => {
+      const m = mf[`${f.key}_matches`];
+      const avg = mf[`${f.key}_batting_avg`];
+      const sr = mf[`${f.key}_strike_rate`];
+      const wkts = mf[`${f.key}_wickets`];
+      const econ = mf[`${f.key}_economy`];
+      const battingPart = (avg != null) ? `${avg} avg, ${sr ?? '—'} SR` : '—';
+      const bowlingPart = (wkts) ? `${wkts} wkts @ ${econ ?? '—'} econ` : '—';
+      return `<tr><td class="fmt-name">${f.label}</td><td>${m}</td><td>${battingPart}</td><td>${bowlingPart}</td></tr>`;
+    }).join('');
+
+  const activeStatus = details.is_active
+    ? `<span class="live-dot"></span>Currently active`
+    : `Inactive / not recently playing`;
+  const lastPlayed = details.last_played_date ? details.last_played_date : 'unknown';
+
+  const panel = document.getElementById('modal-panel');
+  panel.innerHTML = `
+    <div class="modal-header">
+      ${avatarHTML(playerName, 56)}
+      <div>
+        <h3>${playerName}</h3>
+        <div class="modal-meta">${details.team || 'India'} · ${ROLE_LABEL[squadEntry.role] || ''}</div>
+      </div>
+      <button class="modal-close" onclick="closeProfile()">&times;</button>
+    </div>
+    <div class="status-line">${activeStatus} — last played (ODI data): ${lastPlayed}</div>
+    ${rows ? `
+    <table class="stat-table">
+      <thead><tr><th>Format</th><th>Matches</th><th>Batting</th><th>Bowling</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>` : `<p style="color:var(--text-muted); font-size:13px;">Multi-format stats not yet built for this player.</p>`}
+    <div class="modal-footer">Source: Cricsheet · Data last updated ${DATA.updated_at}</div>
+  `;
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+function closeProfile() {
+  document.getElementById('modal-overlay').classList.remove('visible');
+}
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-overlay') closeProfile();
+});
+
+document.getElementById('updated-text').textContent = `Data last updated: ${DATA.updated_at}`;
+document.getElementById('stat-squad').textContent = DATA.squad.length;
+document.getElementById('stat-venues').textContent = DATA.venues.length;
+try {
+  renderSquad();
+  populateVenueDropdown();
+  renderXI();
+} catch (err) {
+  showFatalError((err && err.stack) ? err.stack : String(err));
+}
+</script>
+
+</body>
+</html>

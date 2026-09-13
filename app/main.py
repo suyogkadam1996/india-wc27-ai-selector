@@ -469,11 +469,29 @@ if HAS_DIALOG:
         render_profile_content(player_name, player_details, multiformat)
 
 
+def build_strip_label(row: dict, role_key: str) -> str:
+    """Plain-text label shown when the strip is collapsed -- Streamlit
+    expander labels don't support colored HTML, so this uses simple
+    markdown (bold) and an emoji per role instead. A blank/space label
+    (which was used before) causes Streamlit to show an internal
+    placeholder like '_arrow_right' instead of nothing -- always give
+    it real, readable text."""
+    style = ROLE_STYLE.get(role_key, ROLE_STYLE["batter"])
+    keeper_tag = " 🧤" if row.get("is_wicketkeeper") else ""
+    guaranteed_tag = " ★" if row.get("guaranteed_selection") else ""
+    score_key = "venue_adjusted_score" if "venue_adjusted_score" in row else "suitability_score"
+    score_val = row.get(score_key, row.get("suitability_score", "—"))
+    jersey = row.get("No.", "")
+    return (f"{style['emoji']} **#{jersey}  {row['player']}**{keeper_tag}{guaranteed_tag}"
+            f"  •  {style['label']}  •  Score: {score_val}")
+
+
 def render_player_strip(row: dict, role_key: str, player_details: pd.DataFrame, multiformat: pd.DataFrame,
                           extra_line: str = None, key_prefix: str = "sq") -> None:
-    header_html = render_strip_header(row, role_key)
-    with st.expander(" ", expanded=False):
-        st.markdown(header_html, unsafe_allow_html=True)
+    label = build_strip_label(row, role_key)
+    with st.expander(label, expanded=False):
+        avatar_html = render_avatar_html(row["player"], role_key, size_px=52)
+        st.markdown(avatar_html, unsafe_allow_html=True)
         if extra_line:
             st.markdown(f"<div class='venue-note'>📍 {extra_line}</div>", unsafe_allow_html=True)
         bullets = reason_to_bullets(row.get("reason", ""))
