@@ -89,6 +89,16 @@ def score_bowlers(df: pd.DataFrame) -> pd.DataFrame:
 
 def build_reason(row) -> str:
     parts = []
+
+    # If this player has a manually guaranteed selection, lead with the
+    # real cricketing rationale (experience, temperament, proven track
+    # record) FIRST -- this is genuine selection reasoning in its own
+    # right, not an apology for what the stats say. The stats still
+    # follow, for full transparency, but they're context alongside the
+    # qualitative case, not a contradiction to explain away.
+    if row.get("guaranteed_selection") and pd.notna(row.get("guaranteed_selection_note")):
+        parts.append(str(row["guaranteed_selection_note"]) + ".")
+
     if row["role"] in ("batter", "all_rounder"):
         if pd.notna(row.get("recent_form_avg")):
             parts.append(
@@ -144,8 +154,9 @@ def main():
     result["suitability_score"] = result.apply(combined_score, axis=1)
     result["reason"] = result.apply(build_reason, axis=1)
 
-    out_cols = ["player", "team", "role", "is_wicketkeeper", "suitability_score", "reason",
-                "batting_suitability", "bowling_suitability"]
+    out_cols = ["player", "team", "role", "is_wicketkeeper", "avg_batting_position",
+                "guaranteed_selection", "guaranteed_selection_note",
+                "suitability_score", "reason", "batting_suitability", "bowling_suitability"]
     final = result[out_cols].sort_values("suitability_score", ascending=False)
 
     out_path = PROCESSED_DIR / "player_suitability_scores.parquet"

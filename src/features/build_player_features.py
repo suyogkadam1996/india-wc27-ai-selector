@@ -55,6 +55,19 @@ def load_processed_tables():
     return matches, batting, bowling
 
 
+def build_average_batting_position() -> pd.DataFrame:
+    """Average of each player's real, historical batting entry position
+    (1 = opener, 11 = last man in) -- computed from actual match data
+    (see parse_cricsheet.py), not guessed. Used to sort squad/XI output
+    into a realistic opener -> middle order -> tail listing."""
+    path = PROCESSED_DIR / "batting_positions.parquet"
+    if not path.exists():
+        return pd.DataFrame(columns=["player", "avg_batting_position"])
+    positions = pd.read_parquet(path)
+    avg_pos = positions.groupby("player")["batting_position"].mean().round(1).rename("avg_batting_position")
+    return avg_pos.reset_index()
+
+
 def attach_match_context(df: pd.DataFrame, matches: pd.DataFrame) -> pd.DataFrame:
     """Join venue/date onto a per-innings table."""
     match_cols = matches[["match_id", "venue", "city", "date"]]
@@ -259,6 +272,8 @@ def apply_wicketkeeper_and_overrides(player_features: pd.DataFrame) -> pd.DataFr
     df = player_features.copy()
     df["is_wicketkeeper"] = False
     df["wicketkeeper_confidence"] = "no_signal_available"
+    df["guaranteed_selection"] = False
+    df["guaranteed_selection_note"] = None
 
     keeper_signal_path = PROCESSED_DIR / "wicketkeeper_signal.parquet"
     if keeper_signal_path.exists():
@@ -287,6 +302,10 @@ def apply_wicketkeeper_and_overrides(player_features: pd.DataFrame) -> pd.DataFr
             elif override_type == "role":
                 df.loc[match, "role"] = value
                 df.loc[match, "role_confidence"] = "manual_override_user_specified"
+            elif override_type == "guaranteed_selection":
+                is_true = str(value).strip().upper() == "TRUE"
+                df.loc[match, "guaranteed_selection"] = is_true
+                df.loc[match, "guaranteed_selection_note"] = row["note"]
 
     return df
 
@@ -301,10 +320,12 @@ def main():
     bat_venue, bowl_venue = build_venue_splits(batting, bowling)
     last_played = build_last_played_dates(batting, bowling)
     player_team = build_player_team(batting)
+    avg_batting_position = build_average_batting_position()
 
     player_features = bat_features.merge(bowl_features, on="player", how="outer")
     player_features = player_features.merge(last_played, on="player", how="left")
     player_features = player_features.merge(player_team, on="player", how="left")
+    player_features = player_features.merge(avg_batting_position, on="player", how="left")
     player_features["team_confidence"] = "derived_from_batting_appearances"
     player_features["role"] = player_features.apply(classify_role, axis=1)
     player_features["role_confidence"] = "heuristic_rule_based"

@@ -28,7 +28,7 @@ def parse_match(match_json: dict, match_id: str):
     # so we filter here rather than guessing at a different download URL --
     # this is the reliable, always-correct way to separate them.
     if info.get("gender") != "male":
-        return None, [], []
+        return None, [], [], []
 
     venue = info.get("venue")
     city = info.get("city")
@@ -48,16 +48,30 @@ def parse_match(match_json: dict, match_id: str):
     }
 
     batting_rows = []
+    batting_order_rows = []  # tracks WHEN each player entered the innings (1st, 2nd, ..., 11th)
     bowling_stats = defaultdict(lambda: {"runs_conceded": 0, "balls_bowled": 0, "wickets": 0})
 
     for innings in match_json.get("innings", []):
         batting_team = innings.get("team")
         bat_totals = defaultdict(lambda: {"runs": 0, "balls": 0, "fours": 0, "sixes": 0})
+        entry_order = {}  # player -> position (1 = opener), in order of first appearance
+        next_position = 1
 
         for over in innings.get("overs", []):
             for delivery in over.get("deliveries", []):
                 batter = delivery.get("batter")
+                non_striker = delivery.get("non_striker")
                 bowler = delivery.get("bowler")
+
+                # Record batting position the FIRST time we see each name --
+                # this naturally gives openers position 1 & 2 (both are
+                # already at the crease for ball one), and every later
+                # batter an increasing number as they come in.
+                for name in (batter, non_striker):
+                    if name and name not in entry_order:
+                        entry_order[name] = next_position
+                        next_position += 1
+
                 runs = delivery.get("runs", {})
                 batter_runs = runs.get("batter", 0)
                 total_runs = runs.get("total", 0)
@@ -96,6 +110,13 @@ def parse_match(match_json: dict, match_id: str):
                 "strike_rate": sr,
             })
 
+        for player, position in entry_order.items():
+            batting_order_rows.append({
+                "match_id": match_id,
+                "player": player,
+                "batting_position": position,
+            })
+
     bowling_rows = []
     for player, stats in bowling_stats.items():
         overs = stats["balls_bowled"] / 6
@@ -109,7 +130,7 @@ def parse_match(match_json: dict, match_id: str):
             "economy": economy,
         })
 
-    return match_row, batting_rows, bowling_rows
+    return match_row, batting_rows, bowling_rows, batting_order_rows
 
 
 def main():
@@ -120,28 +141,31 @@ def main():
             "Run download_cricsheet.py first."
         )
 
-    all_matches, all_batting, all_bowling = [], [], []
+    all_matches, all_batting, all_bowling, all_batting_order = [], [], [], []
     skipped_female = 0
 
     for path in json_files:
         match_id = path.stem
         with open(path, "r", encoding="utf-8") as f:
             match_json = json.load(f)
-        match_row, batting_rows, bowling_rows = parse_match(match_json, match_id)
+        match_row, batting_rows, bowling_rows, batting_order_rows = parse_match(match_json, match_id)
         if match_row is None:
             skipped_female += 1
             continue  # was a women's match, filtered out -- see parse_match()
         all_matches.append(match_row)
         all_batting.extend(batting_rows)
         all_bowling.extend(bowling_rows)
+        all_batting_order.extend(batting_order_rows)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(all_matches).to_parquet(OUT_DIR / "matches.parquet", index=False)
     pd.DataFrame(all_batting).to_parquet(OUT_DIR / "innings_batting.parquet", index=False)
     pd.DataFrame(all_bowling).to_parquet(OUT_DIR / "innings_bowling.parquet", index=False)
+    pd.DataFrame(all_batting_order).to_parquet(OUT_DIR / "batting_positions.parquet", index=False)
 
     print(f"Parsed {len(all_matches)} men's matches (skipped {skipped_female} women's matches).")
-    print(f"Batting rows: {len(all_batting)} | Bowling rows: {len(all_bowling)}")
+    print(f"Batting rows: {len(all_batting)} | Bowling rows: {len(all_bowling)} | "
+          f"Batting-order records: {len(all_batting_order)}")
     print(f"Saved to {OUT_DIR}")
 
 

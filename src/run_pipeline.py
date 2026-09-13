@@ -3,13 +3,27 @@ Run the entire data pipeline end to end, in the correct order:
 
   1. Download latest Cricsheet ODI data
   2. Parse into tidy tables
-  3. Build player features
-  4. Build venue features
-  5. Normalize venue names for 2027 WC host grounds
+  3. Detect wicketkeepers (from stumping data)
+  4. Build player features (form, role, active/inactive, keeper flag)
+  5. Build venue features
+  6. Normalize venue names for 2027 WC host grounds
+  7. Score every player's suitability
+  8. Filter down to India's active player pool
+  9. Select the fixed squad of 15
 
-This is the ONE script to run when you want everything refreshed.
+This is the ONE script to run when you want everything refreshed --
+including the squad of 15 itself, since it should be periodically
+re-checked as new ODIs are played over the coming year (new form data,
+injuries showing up as inactivity, etc.) rather than picked once and
+never revisited.
+
 Used both for manual refreshes and by the automated monthly
-GitHub Action (see .github/workflows/refresh-data.yml).
+GitHub Action (see .github/workflows/refresh-data.yml) -- meaning your
+squad of 15 now re-evaluates itself automatically every month too.
+
+NOTE: this does NOT run build_playing_xi.py, since that needs a venue
+name you choose at the time you want it -- run that separately, e.g.:
+    python src/models/build_playing_xi.py "SuperSport Park"
 
 Usage:
     python src/run_pipeline.py
@@ -22,9 +36,13 @@ from pathlib import Path
 SCRIPTS_IN_ORDER = [
     "src/ingest/download_cricsheet.py",
     "src/ingest/parse_cricsheet.py",
+    "src/features/detect_wicketkeepers.py",
     "src/features/build_player_features.py",
     "src/features/build_venue_features.py",
     "src/features/normalize_venues.py",
+    "src/models/build_suitability_scores.py",
+    "src/models/show_india_pool.py",
+    "src/models/build_squad.py",
 ]
 
 

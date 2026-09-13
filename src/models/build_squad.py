@@ -45,14 +45,34 @@ def select_squad(pool: pd.DataFrame) -> pd.DataFrame:
     selected_rows = []
     selected_players = set()
 
-    # Wicketkeepers are pulled out FIRST, regardless of their batter/
+    # STEP 0: honor any manually guaranteed selections FIRST, regardless
+    # of their data-driven score -- this is where real cricket knowledge
+    # (e.g. a senior player BCCI has confirmed remains in their plans,
+    # even through a short-term form dip) overrides the raw numbers.
+    # They still occupy their normal role's quota slot -- a guaranteed
+    # batter still counts as one of the squad's batter slots, it's just
+    # not competing purely on recent-form score for that slot.
+    if "guaranteed_selection" in pool.columns:
+        guaranteed = pool[pool["guaranteed_selection"].fillna(False)].copy()
+        if not guaranteed.empty:
+            guaranteed["selection_note"] = (
+                "Included based on proven track record and current team backing: "
+                + guaranteed["guaranteed_selection_note"].fillna("")
+            )
+            selected_rows.append(guaranteed)
+            selected_players.update(guaranteed["player"])
+
+    # Wicketkeepers are pulled out next, regardless of their batter/
     # bowler/all_rounder role label, using the is_wicketkeeper flag.
     if "is_wicketkeeper" in pool.columns:
         is_keeper = pool["is_wicketkeeper"].fillna(False)
     else:
         is_keeper = pd.Series(False, index=pool.index)
-    keeper_pool = pool[is_keeper]
-    keeper_picks = keeper_pool.head(SQUAD_QUOTAS["wicketkeeper"]).copy()
+    keeper_pool = pool[is_keeper & (~pool["player"].isin(selected_players))]
+    keeper_quota_remaining = SQUAD_QUOTAS["wicketkeeper"] - sum(
+        1 for p in selected_players if pool.loc[pool["player"] == p, "is_wicketkeeper"].any()
+    )
+    keeper_picks = keeper_pool.head(max(keeper_quota_remaining, 0)).copy()
     keeper_picks["selection_note"] = (
         f"Selected as one of the top {SQUAD_QUOTAS['wicketkeeper']} wicketkeepers available."
     )
@@ -60,12 +80,17 @@ def select_squad(pool: pd.DataFrame) -> pd.DataFrame:
     selected_players.update(keeper_picks["player"])
 
     # Then fill each remaining role's quota with its own best players,
-    # skipping anyone already picked as a keeper.
+    # skipping anyone already picked (as guaranteed or as a keeper), and
+    # accounting for quota slots a guaranteed pick already used up.
     for role, quota in SQUAD_QUOTAS.items():
         if role == "wicketkeeper":
             continue
+        already_used = sum(
+            1 for p in selected_players if pool.loc[pool["player"] == p, "role"].eq(role).any()
+        )
+        remaining_quota = max(quota - already_used, 0)
         role_pool = pool[(pool["role"] == role) & (~pool["player"].isin(selected_players))]
-        picks = role_pool.head(quota).copy()
+        picks = role_pool.head(remaining_quota).copy()
         picks["selection_note"] = f"Selected as one of the top {quota} {role}s available."
         selected_rows.append(picks)
         selected_players.update(picks["player"])
@@ -129,7 +154,35 @@ def main():
               f"quota due to a shortage of qualifying players in that role:")
         print(fill_ins[["player", "role"]].to_string(index=False))
 
+    print_batting_order(squad)
     print(f"\nSaved to {out_path}")
+
+
+def print_batting_order(squad: pd.DataFrame) -> None:
+    """Prints the squad sorted by real, historical batting position --
+    openers first, then top/middle order, then lower order, with pure
+    bowlers (who have no meaningful batting position data) at the end,
+    exactly mirroring a real cricket team sheet rather than grouping
+    purely by role label."""
+    df = squad.copy()
+    if "avg_batting_position" not in df.columns:
+        print("\n(Batting-order view unavailable -- rerun build_player_features.py "
+              "after updating parse_cricsheet.py to enable this.)")
+        return
+
+    # Players with no recorded batting position (specialist bowlers who've
+    # never batted in our data) are sorted to the very end, not dropped.
+    df["_sort_key"] = df["avg_batting_position"].fillna(99)
+    ordered = df.sort_values("_sort_key")
+
+    print("\n" + "=" * 50)
+    print("SUGGESTED BATTING ORDER (based on real historical entry positions)")
+    print("=" * 50)
+    for _, row in ordered.iterrows():
+        pos = row["avg_batting_position"]
+        pos_label = f"~#{pos:.0f}" if pd.notna(pos) else "no batting data"
+        keeper_tag = " (wk)" if row.get("is_wicketkeeper") else ""
+        print(f"  {pos_label:>16}  {row['player']}{keeper_tag}  [{row['role']}]")
 
 
 if __name__ == "__main__":
