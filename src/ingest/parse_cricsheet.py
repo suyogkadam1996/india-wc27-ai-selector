@@ -22,6 +22,14 @@ OUT_DIR = Path(__file__).resolve().parents[2] / "data" / "processed"
 
 def parse_match(match_json: dict, match_id: str):
     info = match_json.get("info", {})
+
+    # IMPORTANT: Cricsheet's ODI archive contains BOTH men's and women's
+    # matches together. Every match file has an explicit "gender" field,
+    # so we filter here rather than guessing at a different download URL --
+    # this is the reliable, always-correct way to separate them.
+    if info.get("gender") != "male":
+        return None, [], []
+
     venue = info.get("venue")
     city = info.get("city")
     date = (info.get("dates") or [None])[0]
@@ -113,12 +121,16 @@ def main():
         )
 
     all_matches, all_batting, all_bowling = [], [], []
+    skipped_female = 0
 
     for path in json_files:
         match_id = path.stem
         with open(path, "r", encoding="utf-8") as f:
             match_json = json.load(f)
         match_row, batting_rows, bowling_rows = parse_match(match_json, match_id)
+        if match_row is None:
+            skipped_female += 1
+            continue  # was a women's match, filtered out -- see parse_match()
         all_matches.append(match_row)
         all_batting.extend(batting_rows)
         all_bowling.extend(bowling_rows)
@@ -128,7 +140,7 @@ def main():
     pd.DataFrame(all_batting).to_parquet(OUT_DIR / "innings_batting.parquet", index=False)
     pd.DataFrame(all_bowling).to_parquet(OUT_DIR / "innings_bowling.parquet", index=False)
 
-    print(f"Parsed {len(all_matches)} matches.")
+    print(f"Parsed {len(all_matches)} men's matches (skipped {skipped_female} women's matches).")
     print(f"Batting rows: {len(all_batting)} | Bowling rows: {len(all_bowling)}")
     print(f"Saved to {OUT_DIR}")
 

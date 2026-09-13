@@ -9,6 +9,9 @@ Produces: data/processed/player_features.parquet
     - recency-weighted "current form" stats
     - per-venue performance splits (only where sample size is meaningful)
     - a simple role classification (batter / bowler / all_rounder / unclear)
+    - last_played_date and an is_active flag, so retired players (e.g.
+      someone whose career ended years ago) don't get ranked as top
+      current picks just because their old stats were strong
     - a data_confidence column, since some derived stats (e.g. role
       classification) are heuristic, not measured directly
 
@@ -27,6 +30,13 @@ PROCESSED_DIR = Path(__file__).resolve().parents[2] / "data" / "processed"
 MIN_INNINGS_FOR_VENUE_STAT = 3
 MIN_INNINGS_FOR_FORM_STAT = 5
 RECENT_FORM_WINDOW = 15  # last N innings used for "current form"
+
+# A player is only considered "currently active" (realistically pickable
+# today) if their most recent recorded match is within this many days.
+# NOTE: measured from the LATEST match date found anywhere in the dataset,
+# not from today's real-world date -- this avoids every player looking
+# "inactive" just because the data hasn't been refreshed in a while.
+ACTIVE_WINDOW_DAYS = 730  # ~2 years
 
 
 def load_processed_tables():
@@ -140,6 +150,21 @@ def build_venue_splits(batting: pd.DataFrame, bowling: pd.DataFrame) -> pd.DataF
     return bat_venue, bowl_venue
 
 
+def build_last_played_dates(batting: pd.DataFrame, bowling: pd.DataFrame) -> pd.DataFrame:
+    """One row per player: the most recent date they appear in EITHER
+    the batting or bowling tables -- used to detect retired/inactive
+    players who would otherwise still show up ranked as top picks."""
+    bat_last = batting.groupby("player")["date"].max().rename("last_batted")
+    bowl_last = bowling.groupby("player")["date"].max().rename("last_bowled")
+    combined = pd.concat([bat_last, bowl_last], axis=1)
+    combined["last_played_date"] = combined[["last_batted", "last_bowled"]].max(axis=1)
+
+    dataset_latest_date = combined["last_played_date"].max()
+    cutoff = dataset_latest_date - pd.Timedelta(days=ACTIVE_WINDOW_DAYS)
+    combined["is_active"] = combined["last_played_date"] >= cutoff
+    return combined[["last_played_date", "is_active"]].reset_index()
+
+
 def classify_role(row) -> str:
     """Heuristic, explainable role classification -- deliberately simple
     rules rather than a learned classifier, so it stays auditable."""
@@ -164,8 +189,10 @@ def main():
     bat_features = build_batting_features(batting)
     bowl_features = build_bowling_features(bowling)
     bat_venue, bowl_venue = build_venue_splits(batting, bowling)
+    last_played = build_last_played_dates(batting, bowling)
 
     player_features = bat_features.merge(bowl_features, on="player", how="outer")
+    player_features = player_features.merge(last_played, on="player", how="left")
     player_features["role"] = player_features.apply(classify_role, axis=1)
     player_features["role_confidence"] = "heuristic_rule_based"
 
@@ -174,7 +201,9 @@ def main():
     bat_venue.to_parquet(PROCESSED_DIR / "player_venue_batting.parquet", index=False)
     bowl_venue.to_parquet(PROCESSED_DIR / "player_venue_bowling.parquet", index=False)
 
-    print(f"Built features for {len(player_features)} players.")
+    active_count = player_features["is_active"].sum()
+    print(f"Built features for {len(player_features)} players "
+          f"({active_count} currently active, {len(player_features) - active_count} inactive/retired).")
     print(f"Venue-qualified batting splits: {len(bat_venue)} player-venue pairs "
           f"(min {MIN_INNINGS_FOR_VENUE_STAT} innings each)")
     print(f"Venue-qualified bowling splits: {len(bowl_venue)} player-venue pairs")
