@@ -150,6 +150,23 @@ def build_venue_splits(batting: pd.DataFrame, bowling: pd.DataFrame) -> pd.DataF
     return bat_venue, bowl_venue
 
 
+def build_player_team(batting: pd.DataFrame) -> pd.DataFrame:
+    """One row per player: the team they most often batted for.
+
+    NOTE (known simplification): this is derived only from batting
+    appearances, since the current bowling table doesn't record team.
+    A specialist bowler who rarely or never batted could theoretically
+    be missed by this -- flagged via team_confidence below rather than
+    silently assumed correct.
+    """
+    def most_common_team(s: pd.Series):
+        mode = s.mode()
+        return mode.iloc[0] if not mode.empty else None
+
+    team = batting.groupby("player")["team"].agg(most_common_team).rename("team")
+    return team.reset_index()
+
+
 def build_last_played_dates(batting: pd.DataFrame, bowling: pd.DataFrame) -> pd.DataFrame:
     """One row per player: the most recent date they appear in EITHER
     the batting or bowling tables -- used to detect retired/inactive
@@ -167,8 +184,21 @@ def build_last_played_dates(batting: pd.DataFrame, bowling: pd.DataFrame) -> pd.
 
 def classify_role(row) -> str:
     """Heuristic, explainable role classification -- deliberately simple
-    rules rather than a learned classifier, so it stays auditable."""
-    bats = (row.get("batting_innings") or 0) >= 10
+    rules rather than a learned classifier, so it stays auditable.
+
+    IMPORTANT: "bats" requires both enough innings AND a real batting
+    average -- just having batted 10+ times isn't enough, since
+    specialist bowlers often bat many times at the tail-end without
+    being genuine batting contributors. Without the average check,
+    players like a specialist fast bowler who occasionally bats at
+    #9-11 would incorrectly get labeled 'all_rounder'.
+    """
+    MIN_BATTING_AVG_TO_COUNT = 20.0
+
+    enough_batting_innings = (row.get("batting_innings") or 0) >= 10
+    real_batting_avg = row.get("career_batting_avg")
+    bats = enough_batting_innings and pd.notna(real_batting_avg) and real_batting_avg >= MIN_BATTING_AVG_TO_COUNT
+
     bowls = (row.get("bowling_innings") or 0) >= 10
     has_bowling_wickets = (row.get("career_wickets") or 0) >= 15
 
@@ -190,9 +220,12 @@ def main():
     bowl_features = build_bowling_features(bowling)
     bat_venue, bowl_venue = build_venue_splits(batting, bowling)
     last_played = build_last_played_dates(batting, bowling)
+    player_team = build_player_team(batting)
 
     player_features = bat_features.merge(bowl_features, on="player", how="outer")
     player_features = player_features.merge(last_played, on="player", how="left")
+    player_features = player_features.merge(player_team, on="player", how="left")
+    player_features["team_confidence"] = "derived_from_batting_appearances"
     player_features["role"] = player_features.apply(classify_role, axis=1)
     player_features["role_confidence"] = "heuristic_rule_based"
 
