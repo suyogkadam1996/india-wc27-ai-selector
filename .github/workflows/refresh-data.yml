@@ -8,6 +8,11 @@ on:
     - cron: "0 3 1 * *"
   workflow_dispatch: {}
 
+# Without this, GitHub only lets the automated run READ the repo, not
+# save changes back to it -- this is what caused the first run to fail.
+permissions:
+  contents: write
+
 jobs:
   refresh-data:
     runs-on: ubuntu-latest
