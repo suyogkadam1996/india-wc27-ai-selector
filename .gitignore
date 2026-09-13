@@ -1,7 +1,16 @@
-# Data (keep raw/processed data out of git - too large, and some sources have usage terms)
+# Data
+# Raw downloaded match data: too large to store in git, and Cricsheet
+# has its own usage terms for redistribution -- never committed.
 data/raw/*
-data/processed/*
 !data/raw/.gitkeep
+
+# Processed data: the SMALL, useful result files (player/venue stats)
+# ARE committed to git on purpose. This is what lets the automated
+# monthly refresh (.github/workflows/refresh-data.yml) save fresh
+# results back to the repo for you to use anytime, without needing to
+# rerun anything yourself.
+# We only exclude anything unexpectedly huge that might land here by mistake.
+data/processed/*.json
 !data/processed/.gitkeep
 
 # Python
