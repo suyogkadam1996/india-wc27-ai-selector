@@ -144,7 +144,7 @@ def main():
     result["suitability_score"] = result.apply(combined_score, axis=1)
     result["reason"] = result.apply(build_reason, axis=1)
 
-    out_cols = ["player", "team", "role", "suitability_score", "reason",
+    out_cols = ["player", "team", "role", "is_wicketkeeper", "suitability_score", "reason",
                 "batting_suitability", "bowling_suitability"]
     final = result[out_cols].sort_values("suitability_score", ascending=False)
 

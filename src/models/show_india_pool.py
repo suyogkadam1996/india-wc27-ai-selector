@@ -32,6 +32,13 @@ def main():
     india.to_parquet(out_path, index=False)
 
     print(f"Found {len(india)} active India players.\n")
+
+    keepers = india[india.get("is_wicketkeeper", False) == True]  # noqa: E712
+    if not keepers.empty:
+        print("--- Wicketkeepers ---")
+        print(keepers[["player", "suitability_score"]].to_string(index=False))
+        print()
+
     for role in ["batter", "bowler", "all_rounder"]:
         role_players = india[india["role"] == role].head(8)
         print(f"\n--- Top {role}s ---")

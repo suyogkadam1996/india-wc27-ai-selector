@@ -29,10 +29,12 @@ import pandas as pd
 PROCESSED_DIR = Path(__file__).resolve().parents[2] / "data" / "processed"
 
 # Default ODI squad composition target. Adjustable -- these are a
-# reasonable, typical balance, not a fixed rule.
+# reasonable, typical balance, not a fixed rule. World Cup squads often
+# carry 2 keeper-capable players (1 first-choice, 1 backup).
 SQUAD_QUOTAS = {
-    "batter": 6,
-    "bowler": 6,
+    "wicketkeeper": 2,
+    "batter": 5,
+    "bowler": 5,
     "all_rounder": 3,
 }
 TOTAL_SQUAD_SIZE = sum(SQUAD_QUOTAS.values())  # 15
@@ -43,9 +45,26 @@ def select_squad(pool: pd.DataFrame) -> pd.DataFrame:
     selected_rows = []
     selected_players = set()
 
-    # Step 1: fill each role's quota with its own best players
+    # Wicketkeepers are pulled out FIRST, regardless of their batter/
+    # bowler/all_rounder role label, using the is_wicketkeeper flag.
+    if "is_wicketkeeper" in pool.columns:
+        is_keeper = pool["is_wicketkeeper"].fillna(False)
+    else:
+        is_keeper = pd.Series(False, index=pool.index)
+    keeper_pool = pool[is_keeper]
+    keeper_picks = keeper_pool.head(SQUAD_QUOTAS["wicketkeeper"]).copy()
+    keeper_picks["selection_note"] = (
+        f"Selected as one of the top {SQUAD_QUOTAS['wicketkeeper']} wicketkeepers available."
+    )
+    selected_rows.append(keeper_picks)
+    selected_players.update(keeper_picks["player"])
+
+    # Then fill each remaining role's quota with its own best players,
+    # skipping anyone already picked as a keeper.
     for role, quota in SQUAD_QUOTAS.items():
-        role_pool = pool[pool["role"] == role]
+        if role == "wicketkeeper":
+            continue
+        role_pool = pool[(pool["role"] == role) & (~pool["player"].isin(selected_players))]
         picks = role_pool.head(quota).copy()
         picks["selection_note"] = f"Selected as one of the top {quota} {role}s available."
         selected_rows.append(picks)
@@ -77,17 +96,29 @@ def main():
         )
     pool = pd.read_parquet(pool_path)
 
+    if "is_wicketkeeper" not in pool.columns:
+        raise SystemExit(
+            "The file india_player_pool.parquet is missing the 'is_wicketkeeper' "
+            "column. This usually means it's a stale file from before wicketkeeper "
+            "detection was added. Fix: rerun show_india_pool.py (which reads the "
+            "latest player_suitability_scores.parquet), then rerun this script."
+        )
+
     squad = select_squad(pool)
 
     out_path = PROCESSED_DIR / "india_squad_15.parquet"
     squad.to_parquet(out_path, index=False)
 
-    print(f"Selected a squad of {len(squad)} (target was {TOTAL_SQUAD_SIZE}).")
-    print("\nNOTE: 'batter' below may include wicketkeeper-batters -- this "
-          "version doesn't yet separate keepers out (known limitation).\n")
+    print(f"Selected a squad of {len(squad)} (target was {TOTAL_SQUAD_SIZE}).\n")
 
+    keepers = squad[squad["is_wicketkeeper"].fillna(False)] if "is_wicketkeeper" in squad.columns else squad.iloc[0:0]
+    print(f"--- WICKETKEEPERS ({len(keepers)}) ---")
+    print(keepers[["player", "suitability_score"]].to_string(index=False))
+    print()
+
+    non_keepers = squad[~squad["player"].isin(keepers["player"])]
     for role in ["batter", "bowler", "all_rounder"]:
-        role_squad = squad[squad["role"] == role]
+        role_squad = non_keepers[non_keepers["role"] == role]
         print(f"--- {role.upper()}S ({len(role_squad)}) ---")
         print(role_squad[["player", "suitability_score"]].to_string(index=False))
         print()

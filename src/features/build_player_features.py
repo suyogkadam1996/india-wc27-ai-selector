@@ -12,8 +12,16 @@ Produces: data/processed/player_features.parquet
     - last_played_date and an is_active flag, so retired players (e.g.
       someone whose career ended years ago) don't get ranked as top
       current picks just because their old stats were strong
+    - is_wicketkeeper, combining a data-driven signal (stumping dismissal
+      counts -- see detect_wicketkeepers.py) with manual corrections from
+      data/reference/role_overrides.csv, since real cricket knowledge can
+      catch things automated stats sometimes miss or lack enough sample
+      size for
     - a data_confidence column, since some derived stats (e.g. role
       classification) are heuristic, not measured directly
+
+For best results, run detect_wicketkeepers.py BEFORE this script, so
+the wicketkeeper signal is available to merge in.
 
 Run after Phase 1:
     python src/features/build_player_features.py
@@ -25,6 +33,7 @@ import numpy as np
 import pandas as pd
 
 PROCESSED_DIR = Path(__file__).resolve().parents[2] / "data" / "processed"
+REFERENCE_DIR = Path(__file__).resolve().parents[2] / "data" / "reference"
 
 # Minimum innings/matches thresholds before we trust a stat enough to report it.
 MIN_INNINGS_FOR_VENUE_STAT = 3
@@ -211,6 +220,46 @@ def classify_role(row) -> str:
     return "unclear_insufficient_data"
 
 
+def apply_wicketkeeper_and_overrides(player_features: pd.DataFrame) -> pd.DataFrame:
+    """Merge in the data-driven wicketkeeper signal (if available) and
+    apply manual corrections from role_overrides.csv. Manual overrides
+    always win -- they represent real cricket knowledge that automated
+    stats can miss, especially for players with a smaller data sample."""
+    df = player_features.copy()
+    df["is_wicketkeeper"] = False
+    df["wicketkeeper_confidence"] = "no_signal_available"
+
+    keeper_signal_path = PROCESSED_DIR / "wicketkeeper_signal.parquet"
+    if keeper_signal_path.exists():
+        signal = pd.read_parquet(keeper_signal_path)[["player", "likely_keeper_from_data"]]
+        df = df.merge(signal, on="player", how="left")
+        data_flagged = df["likely_keeper_from_data"].fillna(False)
+        df["is_wicketkeeper"] = data_flagged
+        df.loc[data_flagged, "wicketkeeper_confidence"] = "detected_from_stumping_data"
+        df = df.drop(columns=["likely_keeper_from_data"])
+    else:
+        print("NOTE: wicketkeeper_signal.parquet not found -- run detect_wicketkeepers.py "
+              "for automatic keeper detection. Continuing with manual overrides only.")
+
+    overrides_path = REFERENCE_DIR / "role_overrides.csv"
+    if overrides_path.exists():
+        overrides = pd.read_csv(overrides_path)
+        for _, row in overrides.iterrows():
+            player, override_type, value = row["player"], row["override_type"], row["override_value"]
+            match = df["player"] == player
+            if not match.any():
+                continue  # player not found in this dataset -- skip quietly, not an error
+            if override_type == "wicketkeeper":
+                is_true = str(value).strip().upper() == "TRUE"
+                df.loc[match, "is_wicketkeeper"] = is_true
+                df.loc[match, "wicketkeeper_confidence"] = "manual_override_user_specified"
+            elif override_type == "role":
+                df.loc[match, "role"] = value
+                df.loc[match, "role_confidence"] = "manual_override_user_specified"
+
+    return df
+
+
 def main():
     matches, batting, bowling = load_processed_tables()
     batting = attach_match_context(batting, matches)
@@ -228,6 +277,8 @@ def main():
     player_features["team_confidence"] = "derived_from_batting_appearances"
     player_features["role"] = player_features.apply(classify_role, axis=1)
     player_features["role_confidence"] = "heuristic_rule_based"
+
+    player_features = apply_wicketkeeper_and_overrides(player_features)
 
     out_path = PROCESSED_DIR / "player_features.parquet"
     player_features.to_parquet(out_path, index=False)
